@@ -1,0 +1,882 @@
+﻿<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Tool Rischio PAH">
+<meta name="theme-color" content="#FAF9F7">
+<script data-iphone="sentinella">
+(function(){
+var h=document.documentElement, msg="";
+function ha(c){ return (" "+h.className+" ").indexOf(" "+c+" ")>=0; }
+// L'errore puo' arrivare prima che l'avviso esista — uno script in <head> che
+// non si lascia leggere —: il messaggio si tiene da parte e si scrive quando
+// la pagina c'e'.
+function scrivi(){
+  var e=document.getElementById("nmerr");
+  if(e&&msg) e.textContent="Errore del motore: "+msg;
+}
+function ko(m){
+  if(m&&!msg) msg=m;
+  if(!ha("motore-ko")) h.className+=" motore-ko";
+  scrivi();
+}
+h.className+=" js";
+window.onerror=function(m,src,riga,col){
+  m=String(m);
+  if(/^Script error\.?$/.test(m)) m="il browser non ne mostra il dettaglio (\u00abScript error.\u00bb)";
+  ko(m+(riga?" (riga "+riga+(col?", colonna "+col:"")+")":""));
+};
+document.addEventListener("DOMContentLoaded",function(){
+  if(!ha("motore-ok")) ko(msg||"il motore non ha completato l'avvio"); else scrivi();
+});
+})();
+</script>
+<title>Rischio della PAH — tre strati alla diagnosi, quattro al follow-up</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+  :root {
+    --bg:#FAF9F7; --surface:#FFFFFF; --surface-alt:#F3F2EF;
+    --border:rgba(11,11,11,0.10); --border-strong:rgba(11,11,11,0.18);
+    --text-primary:#0B0B0B; --text-secondary:#52514E; --text-muted:#76746F;
+    --accent-blue:#2A78D6;   --accent-blue-bg:#E6F1FB;   --accent-blue-border:#B5D4F4;
+    --accent-amber:#BA7517;  --accent-amber-bg:#FAEEDA;  --accent-amber-border:#FAC775;
+    --accent-red:#A32D2D;    --accent-red-bg:#FCEBEB;    --accent-red-border:#F7C1C1;
+    --accent-green:#3B6D11;  --accent-green-bg:#EAF3DE;  --accent-green-border:#C0DD97;
+    --cor-1:#3B8E5A; --cor-2a:#E0A82E; --cor-2b:#DE7E3C; --cor-3:#B33A3A;
+    --k0:#2E7D4F; --k0-bg:#E2F3E8; --k0-bd:#A6D9B8;
+    --k1:#2A78D6; --k1-bg:#E3EFFB; --k1-bd:#A9CBF1;
+    --k2:#8A6A00; --k2-bg:#FBF3C8; --k2-bd:#EBD56C;
+    --k3:#B45309; --k3-bg:#FDEBD8; --k3-bd:#F4BD85;
+    --k4:#A32D2D; --k4-bg:#FCE3E3; --k4-bd:#F0A9A9;
+    --grid:rgba(42,120,214,.08);
+    --font:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    --display:'IBM Plex Sans Condensed','Arial Narrow',-apple-system,'Segoe UI',sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,Consolas,'Courier New',monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:#111418; --surface:#181C22; --surface-alt:#20252D;
+      --border:rgba(255,255,255,.10); --border-strong:rgba(255,255,255,.19);
+      --text-primary:#E7EAEE; --text-secondary:#B8BEC7; --text-muted:#949BA5;
+      --accent-blue:#72AAEE;   --accent-blue-bg:#18283A;   --accent-blue-border:#2E4B6C;
+      --accent-amber:#E3A94F;  --accent-amber-bg:#30250F;  --accent-amber-border:#5D4719;
+      --accent-red:#EF8E8E;    --accent-red-bg:#361B1B;    --accent-red-border:#6B3232;
+      --accent-green:#95C873;  --accent-green-bg:#1C2A13;  --accent-green-border:#3C5626;
+      --k0:#8FD3A8; --k0-bg:#132B1D; --k0-bd:#2D5A3E;
+      --k1:#8EC0F5; --k1-bg:#16283C; --k1-bd:#2F5378;
+      --k2:#EDD36A; --k2-bg:#2C260C; --k2-bd:#5E5120;
+      --k3:#F3B27A; --k3-bg:#33210F; --k3-bd:#6B4524;
+      --k4:#F29A9A; --k4-bg:#361B1B; --k4-bd:#6B3232;
+      --grid:rgba(114,170,238,.07);
+      color-scheme:dark;
+    }
+  }
+  body { font-family:var(--font); background:var(--bg); color:var(--text-primary); font-size:14.5px; line-height:1.65; -webkit-font-smoothing:antialiased; }
+  .page { max-width:960px; margin:0 auto; padding:0 16px 4rem; }
+  strong, b { font-weight:600; }
+  em { font-style:italic; }
+  .muted { color:var(--text-muted); }
+  .hero { margin:0 -16px 0; padding:2.2rem 16px 1.3rem; border-bottom:1px solid var(--border);
+          background-color:var(--bg);
+          background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+          background-size:22px 22px; }
+  .kicker { font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--accent-blue); margin-bottom:8px; }
+  .headline { font-family:var(--display); font-size:30px; font-weight:700; line-height:1.12; margin-bottom:10px; }
+  .lede { font-size:14.5px; color:var(--text-secondary); max-width:760px; margin-bottom:12px; }
+  .lede strong { color:var(--text-primary); }
+  .meta-row { display:flex; flex-wrap:wrap; gap:6px 8px; font-size:12px; }
+  .meta-chip { background:var(--surface); border:1px solid var(--border-strong); border-radius:99px; padding:2px 10px; color:var(--text-secondary); overflow-wrap:anywhere; }
+  .meta-chip strong { color:var(--text-primary); }
+  .bar { position:-webkit-sticky;position:sticky; top:0; z-index:30; background:var(--bg); border-bottom:1px solid var(--border-strong);
+         margin:0 -16px 1.2rem; padding:8px 16px; display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; }
+  .bar .lbl { font-family:var(--mono); font-size:10.5px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--text-muted); }
+  .bar .sp { flex:1 1 auto; }
+  .btn { font:600 12.5px var(--font); padding:6px 13px; border-radius:99px; border:1px solid var(--border-strong); background:var(--surface); color:var(--text-secondary); cursor:pointer; }
+  .btn:hover { border-color:var(--accent-blue); color:var(--accent-blue); }
+  .stage { display:flex; align-items:baseline; gap:10px; margin:2rem 0 .7rem; padding-bottom:6px; border-bottom:2px solid var(--border-strong); }
+  .stage-n { font-family:var(--mono); font-size:12px; font-weight:600; color:#FFFFFF; background:var(--accent-blue); border-radius:6px; padding:1px 7px; }
+  .stage-t { font-family:var(--display); font-size:20px; font-weight:700; line-height:1.2; }
+  .stage-w { margin-left:auto; font-size:11.5px; color:var(--text-muted); text-align:right; }
+  .card { background:var(--surface); border:1px solid var(--border-strong); border-radius:12px; padding:14px 16px; margin-bottom:12px; }
+  .card h3 { font-size:13px; font-weight:600; letter-spacing:.02em; margin-bottom:8px; color:var(--text-secondary); }
+  .card h3.sep { margin-top:12px; padding-top:10px; border-top:1px solid var(--border-strong); }
+  .fl { font-size:12.5px; font-weight:600; color:var(--text-secondary); min-width:150px; }
+  .fl small { display:block; font-weight:400; color:var(--text-muted); font-size:11.5px; }
+  input[type=number] { font:500 15px var(--font); color:var(--text-primary); background:var(--surface); border:1px solid var(--border-strong); border-radius:8px; padding:6px 9px; width:92px; text-align:center; }
+  .seg { display:inline-flex; flex-wrap:wrap; border:1px solid var(--border-strong); border-radius:10px; overflow:hidden; max-width:100%; }
+  .seg label { position:relative; cursor:pointer; }
+  .seg input { position:absolute; opacity:0; width:1px; height:1px; }
+  .seg span { display:block; padding:6px 12px; font-size:13.5px; font-weight:500; color:var(--text-secondary); border-right:1px solid var(--border); }
+  .seg label:last-child span { border-right:none; }
+  .seg input:checked + span { background:var(--text-primary); color:var(--bg); }
+  .seg input:focus-visible + span { outline:2px solid var(--accent-blue); outline-offset:-2px; }
+  .seg.col { display:flex; flex-direction:column; }
+  .seg.col span { border-right:none; border-bottom:1px solid var(--border); }
+  .seg.col label:last-child span { border-bottom:none; }
+  .seg.col small { display:block; font-weight:400; font-size:11.5px; opacity:.8; }
+  .chk { display:flex; align-items:flex-start; gap:9px; padding:6px 0; font-size:14px; line-height:1.45; border-bottom:1px dashed var(--border); cursor:pointer; }
+  .chk:last-child { border-bottom:none; }
+  .chk input { margin-top:3px; width:17px; height:17px; flex:0 0 auto; accent-color:var(--accent-blue); }
+  .chk small { display:block; color:var(--text-muted); font-size:12px; }
+  .chk .tx { flex:1 1 auto; min-width:0; }
+  .chk.on .tx { color:var(--text-primary); font-weight:500; }
+  .chk.conf { margin-top:6px; border-top:1px solid var(--border-strong); padding-top:9px; }
+  .peso { font-family:var(--mono); font-size:11px; color:var(--text-muted); }
+  .peso .ne { color:var(--accent-amber); font-weight:600; }
+  .grp { font-family:var(--mono); font-size:10.5px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--text-muted); margin:10px 0 2px; }
+  .grp:first-child { margin-top:0; }
+  .riga { display:flex; flex-wrap:wrap; align-items:center; gap:6px 12px; padding:6px 0; border-bottom:1px dashed var(--border); }
+  .riga:last-child { border-bottom:none; }
+  .riga .fl { min-width:0; flex:1 1 180px; }
+  .hide { display:none !important; }
+  .esito { display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px; margin-bottom:4px; }
+  .cat { display:inline-block; font-size:12.5px; font-weight:600; border-radius:99px; padding:2px 10px; border:1px solid; }
+  .k0 { color:var(--k0); background:var(--k0-bg); border-color:var(--k0-bd); }
+  .k1 { color:var(--k1); background:var(--k1-bg); border-color:var(--k1-bd); }
+  .k2 { color:var(--k2); background:var(--k2-bg); border-color:var(--k2-bd); }
+  .k3 { color:var(--k3); background:var(--k3-bg); border-color:var(--k3-bd); }
+  .k4 { color:var(--k4); background:var(--k4-bg); border-color:var(--k4-bd); }
+  .kx { color:var(--text-muted); background:var(--surface-alt); border-color:var(--border-strong); }
+  .big { font-family:var(--display); font-size:24px; font-weight:700; line-height:1.15; }
+  .cor { display:inline-block; font-family:var(--mono); font-size:11px; font-weight:600; color:#FFFFFF; border-radius:4px; padding:0 5px; margin:0 1px; white-space:nowrap; vertical-align:1px; }
+  .c1 { background:var(--cor-1); } .c2a { background:var(--cor-2a); color:#1D1602; } .c2b { background:var(--cor-2b); } .c3 { background:var(--cor-3); }
+  .cf { background:var(--surface-alt); color:var(--text-secondary); border:1px dashed var(--border-strong); }
+  .pg { font-family:var(--mono); font-size:11px; color:var(--text-muted); }
+  .nota { border-left:3px solid var(--accent-amber); background:var(--accent-amber-bg); border-radius:0 8px 8px 0; padding:7px 11px; margin-top:8px; font-size:13.5px; }
+  .nota.info { border-left-color:var(--accent-blue); background:var(--accent-blue-bg); }
+  .nota.stop { border-left-color:var(--accent-red); background:var(--accent-red-bg); }
+  .nota.ok { border-left-color:var(--accent-green); background:var(--accent-green-bg); }
+  .nota.spenta { border-left-color:var(--border-strong); background:var(--surface-alt); color:var(--text-secondary); }
+  .nota strong { color:var(--text-primary); }
+  .ed { border:1px solid var(--border-strong); border-radius:10px; padding:10px 12px; margin-top:10px; }
+  .ed.prev { border-color:var(--accent-blue-border); background:var(--accent-blue-bg); }
+  .ed .edt { font-family:var(--mono); font-size:10.5px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px; }
+  .ed.prev .edt { color:var(--accent-blue); }
+  .ed .tx { font-size:13.5px; overflow-wrap:anywhere; }
+  .conta { font-size:13.5px; margin-top:6px; }
+  .conta li { margin:2px 0 2px 18px; }
+  .passo { display:flex; gap:10px; padding:8px 0; border-bottom:1px dashed var(--border); }
+  .passo:last-child { border-bottom:none; }
+  .passo .ico { flex:0 0 26px; font-weight:700; text-align:center; font-family:var(--mono); font-size:13px; padding-top:1px; }
+  .passo .tx { flex:1 1 auto; font-size:14px; min-width:0; overflow-wrap:anywhere; }
+  .passo.att { background:var(--accent-blue-bg); border-radius:8px; border-bottom-color:transparent; padding:8px 8px; margin:2px -8px; }
+  .passo.att .ico { color:var(--accent-blue); }
+  .lista li { margin:4px 0 4px 18px; font-size:13.5px; }
+  .vv { font-family:var(--mono); font-size:12px; color:var(--text-muted); }
+  .foot { margin-top:2.4rem; padding-top:1rem; border-top:1px solid var(--border-strong); font-size:12px; color:var(--text-muted); line-height:1.7; }
+  .foot strong { color:var(--text-secondary); }
+  .tab { width:100%; border-collapse:collapse; font-size:13px; margin-top:4px; }
+  .tab th, .tab td { text-align:left; padding:5px 6px; border-bottom:1px solid var(--border); vertical-align:top; }
+  .tab th { font-size:11.5px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:.04em; white-space:nowrap; overflow-wrap:normal; }
+  .tab td.n { font-family:var(--mono); white-space:nowrap; text-align:right; }
+  .tab tr.on td { background:var(--accent-blue-bg); font-weight:600; }
+  @media (max-width:640px) {
+    .page { overflow-wrap:anywhere; }
+    .headline { font-size:25px; }
+    .stage-w { display:none; }
+    .fl { min-width:0; width:100%; }
+    .big { font-size:21px; }
+  }
+  @media print { .bar { position:static; } }
+  /* aggiunte di questo tool */
+  .fl small b { color:var(--text-secondary); font-weight:600; }
+  .num-u { font-size:12px; color:var(--text-muted); }
+  .sc { display:inline-block; font-size:11.5px; font-weight:600; border-radius:99px; padding:0 8px; border:1px solid; white-space:nowrap; }
+  .catena { display:flex; flex-wrap:wrap; align-items:center; gap:4px 6px; font-size:12.5px; margin:4px 0 8px; }
+  .catena .nodo { border:1px solid var(--border-strong); border-radius:8px; padding:1px 8px; background:var(--surface-alt); }
+  .catena .nodo.on { border-color:var(--accent-blue-border); background:var(--accent-blue-bg); font-weight:600; }
+  .catena .fr { color:var(--text-muted); font-family:var(--mono); }
+  .grade { display:inline-block; font-size:11.5px; font-weight:600; border-radius:6px; padding:0 6px; border:1px dashed var(--border-strong); background:var(--surface-alt); color:var(--text-secondary); }
+  .nocom { display:inline-block; font-size:11px; font-weight:600; border-radius:6px; padding:0 6px; border:1px solid var(--accent-amber-border); background:var(--accent-amber-bg); color:var(--accent-amber); }
+</style>
+<style data-iphone="stile">
+/* L'avviso e' visibile per costruzione: lo nasconde solo la classe che la
+   sentinella mette quando JavaScript esiste, e lo rimostra quando il motore
+   muore. Nell'anteprima dell'iPhone nessuna delle due arriva. */
+#nomotore{background:#FCEBEB;border:1.5px solid #A32D2D;border-radius:10px;
+ padding:12px 15px;margin:0 0 1.1rem;font-size:13.5px;line-height:1.6;color:#0B0B0B;
+ font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif}
+#nomotore strong{display:block;color:#A32D2D;font-size:15px;margin-bottom:4px}
+#nomotore p{margin:6px 0 0}
+#nomotore a{color:#A32D2D}
+#nomotore .nmurl{font-family:'SFMono-Regular',Consolas,Menlo,monospace;font-size:.92em;word-break:break-all}
+#nomotore .nmerr{display:block;font-family:'SFMono-Regular',Consolas,Menlo,monospace;
+ font-size:11.5px;color:#A32D2D;margin-top:6px;word-break:break-word}
+#nomotore .nmerr:empty{display:none}
+html.js #nomotore{display:none}
+html.js.motore-ko #nomotore{display:block}
+
+#nmprivacy{background:#E2F4F5;border:1px solid #A7DBDE;border-radius:8px;padding:9px 13px;
+ margin:0 0 1rem;font-size:12.5px;line-height:1.55;color:#0B0B0B;
+ font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif}
+@media print{#nmprivacy{display:none}}
+</style>
+</head>
+<body>
+<div class="nomotore" id="nomotore" role="alert">
+ <strong>Motore di calcolo non attivo</strong>
+ <p>I calcoli, i filtri e i comandi di questa pagina <b>non funzionano</b>: dove leggi «—» non c'è un
+ valore. Il testo resta leggibile, i numeri che dipendono dai tuoi dati no. Non usare questa pagina
+ per decidere una dose.</p>
+ <p>Su iPhone e iPad succede sempre con un file salvato sul telefono: si apre nell'<b>anteprima</b> —
+ dall'app File, da Mail, da WhatsApp —, che mostra la pagina ma non esegue il motore, e Apple non
+ permette di aprirlo in Safari. Sull'iPhone il tool funziona aperto da questo indirizzo, in Safari: <a class="nmurl" href="https://francescofugetto-ai.github.io/tool-rischio-pah-web/">https://francescofugetto-ai.github.io/tool-rischio-pah-web/</a> — poi Condividi, «Aggiungi alla schermata Home». Dopo la prima apertura funziona anche senza rete. Su computer e Android basta aprire il file.</p>
+ <span class="nmerr" id="nmerr"></span>
+</div>
+<div class="nmprivacy" id="nmprivacy">
+ <b>Quello che scrivi resta su questo dispositivo.</b> La pagina non invia niente in rete e non
+ salva niente: nessun dato esce da qui. Per la stessa ragione, <b>chiudendola il contenuto si
+ perde</b> — copia il referto dove ti serve prima di chiudere.
+</div>
+<div class="page">
+<header class="hero">
+  <div class="kicker">Strumento · Ipertensione polmonare · ESC/ERS 2022</div>
+  <h1 class="headline">Rischio della PAH: tre strati alla diagnosi, quattro al follow-up</h1>
+  <p class="lede"><strong>Come si usa.</strong> Si sceglie la forma e il momento. <strong>Alla diagnosi</strong> il modello è la Tab. 16: ogni variabile cade in uno strato e lo strumento le mette in fila, ma <strong>non è una media</strong>: conta il quadro d'insieme, e se è discordante lo strato lo scegli tu. <strong>Al follow-up</strong> il modello è la Tab. 18: WHO-FC, 6MWD e peptide danno da 1 a 4 punti, e la media arrotondata è lo strato. Lo strumento dice quante variabili mancano e che cosa cambierebbero. <strong>Nessuna dose.</strong> Che cosa dare a ogni strato lo dice il <strong>Tool Terapia PAH</strong>. <strong>Azzera</strong>, in alto, ricomincia.</p>
+  <div class="meta-row">
+    <span class="meta-chip"><strong>Fonte</strong> 2022 ESC/ERS Guidelines for pulmonary hypertension · Tab. 16, p. 3657 · Tab. 17, p. 3658 · Tab. 18, p. 3659 · Rec. Table 4, p. 3660</span>
+    <span class="meta-chip"><strong>Arrotondamento</strong> 7th World Symposium 2024, rischio, p. 9 · decisione del medico del 01/11/2026</span>
+    <span class="meta-chip"><strong>Accanto</strong> ERS 2026, Fig. 2: conserva i due modelli</span>
+  </div>
+</header>
+
+<div class="bar" id="bar" aria-live="polite">
+  <span class="lbl">Modello</span> <span id="barModello" class="cat kx">—</span>
+  <span class="lbl">Strato</span> <span id="barStrato" class="cat kx">—</span>
+  <span class="lbl">Mortalità a 1 anno</span> <span id="barMort" class="cat kx">—</span>
+  <span class="sp"></span>
+  <button class="btn" id="azzera" type="button">Azzera</button>
+</div>
+
+<div class="stage"><span class="stage-n">1</span><span class="stage-t">Chi e quando</span><span class="stage-w">Rec. Table 4, p. 3660 · p. 3659</span></div>
+<div class="card">
+  <div class="riga"><span class="fl">Forma di ipertensione polmonare<small>la Tab. 18 è stata validata nelle prime tre, p. 3659</small></span>
+    <span class="seg col">
+      <label><input type="radio" name="forma" value="ihd"><span>PAH idiopatica, ereditaria o da farmaci</span></label>
+      <label><input type="radio" name="forma" value="ctd"><span>PAH da connettivite<small>sclerosi sistemica compresa</small></span></label>
+      <label><input type="radio" name="forma" value="poph"><span>PAH porto-polmonare</span></label>
+      <label><input type="radio" name="forma" value="altra"><span>altra PAH<small>HIV, cardiopatia congenita, PVOD o PCH, schistosomiasi</small></span></label>
+      <label><input type="radio" name="forma" value="grp"><span>non è PAH<small>gruppi 2, 3, 4 o 5</small></span></label>
+      <label><input type="radio" name="forma" value="bimbo"><span>sotto i 18 anni</span></label>
+    </span></div>
+  <div class="riga"><span class="fl">Momento</span>
+    <span class="seg">
+      <label><input type="radio" name="mom" value="dia"><span>alla diagnosi</span></label>
+      <label><input type="radio" name="mom" value="fu"><span>al follow-up</span></label>
+    </span></div>
+  <label class="chk"><input type="checkbox" id="comorb"><span class="tx">Comorbidità cardiopolmonari<small>obesità, ipertensione, diabete, coronaropatia; segni di parenchimopatia lieve, spesso con DLCO &lt; 45% del predetto <span class="pg">Fig. 9, nota a, p. 3666</span></small></span></label>
+  <div id="notaForma"></div>
+</div>
+
+<div class="stage"><span class="stage-n">2</span><span class="stage-t">Le tre variabili di base</span><span class="stage-w" id="wBase">Tab. 16, p. 3657 · Tab. 18, p. 3659</span></div>
+<div class="card">
+  <div class="riga" id="rigaWho"><span class="fl">Classe funzionale WHO<small id="cWho">Tab. 15, p. 3656</small></span>
+    <span class="seg">
+      <label><input type="radio" name="who" value="I"><span>I</span></label>
+      <label><input type="radio" name="who" value="II"><span>II</span></label>
+      <label><input type="radio" name="who" value="III"><span>III</span></label>
+      <label><input type="radio" name="who" value="IV"><span>IV</span></label>
+    </span><span class="vv" id="vWho">—</span></div>
+  <div class="riga"><span class="fl">6MWD, in metri<small id="cD6">distanza assoluta, non il predetto</small></span><input type="number" id="d6" min="0" max="1200" step="any" inputmode="decimal" placeholder="m"><span class="vv" id="vD6">—</span></div>
+  <div class="riga"><span class="fl">Peptide natriuretico, ng/L<small id="cPep">1 ng/L = 1 pg/mL</small></span>
+    <span class="seg">
+      <label><input type="radio" name="pep" value="bnp"><span>BNP</span></label>
+      <label><input type="radio" name="pep" value="nt"><span>NT-proBNP</span></label>
+    </span><input type="number" id="pv" min="1" max="200000" step="any" inputmode="decimal" placeholder="ng/L"><span class="vv" id="vPep">—</span></div>
+</div>
+
+<div class="stage"><span class="stage-n">3</span><span class="stage-t" id="tAltre">Le altre variabili della Tab. 16</span><span class="stage-w">Tab. 16, p. 3657</span></div>
+<div class="nota info" id="notaAltre" style="margin:0 0 10px">Tagli del modello a tre strati. Ciascuna è facoltativa.</div>
+<div class="card">
+  <h3>Clinica</h3>
+  <div class="riga"><span class="fl">Segni di scompenso destro<small>assenti: basso o intermedio, la tabella non li separa · presenti: alto</small></span>
+    <span class="seg">
+      <label><input type="radio" name="scomp" value="no"><span>assenti</span></label>
+      <label><input type="radio" name="scomp" value="si"><span>presenti</span></label>
+    </span><span class="vv" id="v_scomp">—</span></div>
+  <div class="riga"><span class="fl">Progressione di sintomi e quadro clinico</span>
+    <span class="seg">
+      <label><input type="radio" name="prog" value="no"><span>no</span></label>
+      <label><input type="radio" name="prog" value="lenta"><span>lenta</span></label>
+      <label><input type="radio" name="prog" value="rapida"><span>rapida</span></label>
+    </span><span class="vv" id="v_prog">—</span></div>
+  <div class="riga"><span class="fl">Sincope<small><b>occasionale</b>: durante uno sforzo intenso, od ortostatica in un paziente stabile · <b>ripetuta</b>: anche con un'attività modesta o abituale <span class="pg">Tab. 16, note a–b</span></small></span>
+    <span class="seg">
+      <label><input type="radio" name="sinc" value="no"><span>no</span></label>
+      <label><input type="radio" name="sinc" value="occ"><span>occasionale</span></label>
+      <label><input type="radio" name="sinc" value="rip"><span>ripetuta</span></label>
+    </span><span class="vv" id="v_sinc">—</span></div>
+  <h3 class="sep">Test da sforzo cardiopolmonare</h3>
+  <div class="riga"><span class="fl">Picco VO₂, mL/min/kg<small>basso &gt; 15 · intermedio 11–15 · alto &lt; 11</small></span><input type="number" id="vo2" min="1" max="80" step="any" inputmode="decimal"><span class="vv" id="v_vo2">—</span></div>
+  <div class="riga"><span class="fl">Picco VO₂, % del predetto<small>basso &gt; 65 · intermedio 35–65 · alto &lt; 35</small></span><input type="number" id="vo2p" min="1" max="200" step="any" inputmode="decimal"><span class="vv" id="v_vo2p">—</span></div>
+  <div class="riga"><span class="fl">VE/VCO₂ slope<small>basso &lt; 36 · intermedio 36–44 · alto &gt; 44</small></span><input type="number" id="ve" min="10" max="150" step="any" inputmode="decimal"><span class="vv" id="v_ve">—</span></div>
+  <h3 class="sep">Ecocardiogramma</h3>
+  <div class="riga"><span class="fl">Area dell'atrio destro, cm²<small>basso &lt; 18 · intermedio 18–26 · alto &gt; 26</small></span><input type="number" id="ad" min="3" max="80" step="any" inputmode="decimal"><span class="vv" id="v_ad">—</span></div>
+  <div class="riga"><span class="fl">TAPSE/sPAP, mm/mmHg<small>basso &gt; 0,32 · intermedio 0,19–0,32 · alto &lt; 0,19</small></span><input type="number" id="ts" min="0.01" max="3" step="any" inputmode="decimal"><span class="vv" id="v_ts">—</span></div>
+  <div class="riga"><span class="fl">Versamento pericardico</span>
+    <span class="seg">
+      <label><input type="radio" name="vers" value="no"><span>nessuno</span></label>
+      <label><input type="radio" name="vers" value="min"><span>minimo</span></label>
+      <label><input type="radio" name="vers" value="amp"><span>moderato o ampio</span></label>
+    </span><span class="vv" id="v_vers">—</span></div>
+  <h3 class="sep">Risonanza magnetica cardiaca</h3>
+  <div class="riga"><span class="fl">RVEF, %<small>basso &gt; 54 · intermedio 37–54 · alto &lt; 37</small></span><input type="number" id="rvef" min="1" max="95" step="any" inputmode="decimal"><span class="vv" id="v_rvef">—</span></div>
+  <div class="riga"><span class="fl">SVI alla risonanza, mL/m²<small>basso &gt; 40 · intermedio 26–40 · alto &lt; 26 · <b>non sono i tagli del cateterismo</b></small></span><input type="number" id="svrm" min="1" max="150" step="any" inputmode="decimal"><span class="vv" id="v_svrm">—</span></div>
+  <div class="riga"><span class="fl">RVESVI, mL/m²<small>basso &lt; 42 · intermedio 42–54 · alto &gt; 54</small></span><input type="number" id="rvesvi" min="1" max="400" step="any" inputmode="decimal"><span class="vv" id="v_rvesvi">—</span></div>
+  <h3 class="sep">Cateterismo destro</h3>
+  <div class="riga"><span class="fl">RAP, mmHg<small>basso &lt; 8 · intermedio 8–14 · alto &gt; 14</small></span><input type="number" id="rap" min="0" max="50" step="any" inputmode="decimal"><span class="vv" id="v_rap">—</span></div>
+  <div class="riga"><span class="fl">Indice cardiaco, L/min/m²<small>basso ≥ 2,5 · intermedio 2,0–2,4 · alto &lt; 2,0</small></span><input type="number" id="ci" min="0.3" max="12" step="any" inputmode="decimal"><span class="vv" id="v_ci">—</span></div>
+  <div class="riga"><span class="fl">SVI al cateterismo, mL/m²<small>basso &gt; 38 · intermedio 31–38 · alto &lt; 31</small></span><input type="number" id="svi" min="1" max="150" step="any" inputmode="decimal"><span class="vv" id="v_svi">—</span></div>
+  <div class="riga"><span class="fl">SvO₂, %<small>basso &gt; 65 · intermedio 60–65 · alto &lt; 60</small></span><input type="number" id="svo2" min="1" max="100" step="any" inputmode="decimal"><span class="vv" id="v_svo2">—</span></div>
+</div>
+
+<div class="stage"><span class="stage-n">4</span><span class="stage-t">Lo strato</span><span class="stage-w" id="wEsito">Tab. 16 · Tab. 18</span></div>
+<div class="card" id="outStrato"></div>
+<div class="card hide" id="cardGiudizio">
+  <h3>Il tuo giudizio d'insieme</h3>
+  <div class="riga"><span class="fl">Strato alla diagnosi<small>la fonte non dà un conto: si pesano tutti i dati, con più peso a tipo di malattia, WHO-FC, 6MWD, peptide ed emodinamica <span class="pg">p. 3659</span></small></span>
+    <span class="seg">
+      <label><input type="radio" name="giud" value="b"><span>basso</span></label>
+      <label><input type="radio" name="giud" value="i"><span>intermedio</span></label>
+      <label><input type="radio" name="giud" value="a"><span>alto</span></label>
+    </span></div>
+</div>
+<div class="card" id="outCome"></div>
+
+<div class="stage"><span class="stage-n">5</span><span class="stage-t">Che cosa se ne fa</span><span class="stage-w">Rec. Table 4, p. 3660 · Tab. 17, p. 3658</span></div>
+<div class="card" id="outPoi"></div>
+
+<div class="stage"><span class="stage-n">6</span><span class="stage-t">Da sapere</span><span class="stage-w">incoerenze della fonte e confronti</span></div>
+<div class="card" id="outInc"></div>
+<div class="card"><h3>Limiti per questo paziente</h3><ul class="lista" id="limiti"></ul></div>
+
+<div class="foot">
+  <strong>Fonti.</strong> Humbert M, Kovacs G, Hoeper MM, et al. 2022 ESC/ERS Guidelines for the diagnosis and treatment of pulmonary hypertension. <em>Eur Heart J</em> 2022;43:3618–731 — Tab. 5, p. 3637; Tab. 15, p. 3656; Tab. 16, p. 3657; Tab. 17, p. 3658; Tab. 18, p. 3659; testo pp. 3656–3660; Rec. Table 4, p. 3660; Fig. 9, p. 3666; p. 3671; Rec. Table 13, p. 3673; Tab. 20, p. 3672. Dardi F, et al. Risk stratification and treatment goals in pulmonary arterial hypertension. <em>Eur Respir J</em> 2024 (7th World Symposium), p. 9 del PDF, per l'arrotondamento e per il peso dell'alto rischio alla diagnosi, p. 11 per ciò che fa variare il peptide. ERS 2026, linee guida per la terapia della PAH, manoscritto accettato (Kovacs, <em>Eur Respir J</em> 2026), Fig. 2 con le note a p. 27 del PDF. Ogni taglio è stato letto sull'immagine della pagina: nel testo estratto della fonte i segni di minore e maggiore si perdono.<br><br>
+  <strong>Strumento di consultazione, non sostituisce il giudizio clinico.</strong> Non conserva i dati: si azzera ricaricando la pagina.
+</div>
+</div>
+<script>
+(function () {
+  "use strict";
+  /* ═══ DATI — trascritti dalla fonte, segni e colori letti sull'immagine ═══════════════════════
+     Nel testo estratto della ESC/ERS 2022 i segni di minore e maggiore si perdono: ogni riga qui
+     e' stata riletta sulla pagina.
+     TAB. 16, p. 3657 — tre strati, mortalita' STIMATA a 1 anno: basso < 5%, intermedio 5-20%,
+     alto > 20%. Colori: verde, giallo, rosso. Il valore di confine sta nell'intermedio.
+     Nota a: sincope occasionale durante uno sforzo intenso, od ortostatica in un paziente stabile.
+     Nota b: episodi ripetuti anche con un'attivita' modesta o abituale.
+     Nota c: la 6MWD dipende da eta', altezza e comorbidita'.
+     Nota d: tagli del peptide aggiornati rispetto al 2015 sui dati del REVEAL.
+     Nota e: RM dal § 6.2.2.2.
+     Buco della fonte: CI >= 2,5 basso, 2,0-2,4 intermedio; fra 2,4 e 2,5 non e' collocato. */
+  var NOME3 = { b:"basso", i:"intermedio", a:"alto", bi:"basso o intermedio" };
+  var K3 = { b:"k0", i:"k2", a:"k4", bi:"kx" };
+  var MORT3 = { b:"< 5%", i:"5–20%", a:"> 20%" };
+  // su: true = piu' alto e' meglio. bI: il taglio del basso e' compreso (solo CI >= 2,5).
+  var T16 = {
+    d6:     { nome:"6MWD", u:"m", su:true,  b:440, a:165, dom:[0, 1200] },
+    vo2:    { nome:"Picco VO₂", u:"mL/min/kg", su:true,  b:15, a:11, dom:[1, 80] },
+    vo2p:   { nome:"Picco VO₂, % del predetto", u:"%", su:true,  b:65, a:35, dom:[1, 200] },
+    ve:     { nome:"VE/VCO₂ slope", u:"", su:false, b:36, a:44, dom:[10, 150] },
+    bnp:    { nome:"BNP", u:"ng/L", su:false, b:50, a:800, dom:[1, 200000] },
+    nt:     { nome:"NT-proBNP", u:"ng/L", su:false, b:300, a:1100, dom:[1, 200000] },
+    ad:     { nome:"Area dell'atrio destro", u:"cm²", su:false, b:18, a:26, dom:[3, 80] },
+    ts:     { nome:"TAPSE/sPAP", u:"mm/mmHg", su:true,  b:0.32, a:0.19, dom:[0.01, 3] },
+    rvef:   { nome:"RVEF", u:"%", su:true,  b:54, a:37, dom:[1, 95] },
+    svrm:   { nome:"SVI alla risonanza", u:"mL/m²", su:true,  b:40, a:26, dom:[1, 150] },
+    rvesvi: { nome:"RVESVI", u:"mL/m²", su:false, b:42, a:54, dom:[1, 400] },
+    rap:    { nome:"RAP", u:"mmHg", su:false, b:8, a:14, dom:[0, 50] },
+    ci:     { nome:"Indice cardiaco", u:"L/min/m²", su:true, bI:true, b:2.5, a:2.0, dom:[0.3, 12] },
+    svi:    { nome:"SVI al cateterismo", u:"mL/m²", su:true,  b:38, a:31, dom:[1, 150] },
+    svo2:   { nome:"SvO₂", u:"%", su:true,  b:65, a:60, dom:[1, 100] }
+  };
+  var C16 = {
+    scomp: { nome:"Segni di scompenso destro", v:{ no:["assenti", "bi"], si:["presenti", "a"] } },   // «assenti» sta in due colonne
+    prog:  { nome:"Progressione dei sintomi", v:{ no:["no", "b"], lenta:["lenta", "i"], rapida:["rapida", "a"] } },
+    sinc:  { nome:"Sincope", v:{ no:["no", "b"], occ:["occasionale", "i"], rip:["ripetuta", "a"] } },
+    who:   { nome:"WHO-FC", v:{ I:["I", "b"], II:["II", "b"], III:["III", "i"], IV:["IV", "a"] } },
+    vers:  { nome:"Versamento pericardico", v:{ no:["nessuno", "b"], min:["minimo", "i"], amp:["moderato o ampio", "a"] } }
+  };
+  // L'ordine della tabella. I gruppi con il peso maggiore alla diagnosi: WHO-FC, 6MWD, peptide, emodinamica (p. 3659).
+  var ORD3 = ["scomp", "prog", "sinc", "who", "d6", "vo2", "vo2p", "ve", "pep", "ad", "ts", "vers", "rvef", "svrm", "rvesvi", "rap", "ci", "svi", "svo2"];
+  var EMO = ["rap", "ci", "svi", "svo2"];
+  var CHIAVI = { who:1, d6:1, pep:1, rap:1, ci:1, svi:1, svo2:1 };
+
+  /* TAB. 18, p. 3659 — quattro strati. Colori: verde, giallo, arancio, rosso. WHO-FC I e II = 1 punto
+     (nota a), nessuna classe vale 2. 6MWD > 440 · 320-440 · 165-319 · < 165. BNP < 50 · 50-199 · 200-800
+     · > 800. NT-proBNP < 300 · 300-649 · 650-1100 · > 1100. La somma si divide per il numero delle
+     variabili e si arrotonda. Mortalita' OSSERVATA a 1 anno, p. 3659: 0-3%, 2-7%, 9-19%, > 20%.
+     Due variabili: ammesse, meglio una funzionale con il peptide (p. 3659).
+     Arrotondamento — p. 3659: «all'intero successivo», senza esempi; WSPH 2024, rischio, p. 9:
+     «all'intero piu' vicino». Decisione del medico del 01/11/2026: all'intero piu' vicino, e il mezzo
+     verso l'alto: 1,5 -> 2; 2,5 -> 3; 3,5 -> 4; 2,33 -> 2; 2,67 -> 3. Sul mezzo la lettura e' nostra. */
+  var NOME4 = { 1:"basso", 2:"intermedio-basso", 3:"intermedio-alto", 4:"alto" };
+  var K4 = { 1:"k0", 2:"k2", 3:"k3", 4:"k4" };
+  var MORT4 = { 1:"0–3%", 2:"2–7%", 3:"9–19%", 4:"> 20%" };
+  var T18 = {
+    who: { I:1, II:1, III:3, IV:4 },
+    d6:  { p1:440, p2:320, p3:165 },
+    bnp: { p1:50, p2:199, p3:800 },
+    nt:  { p1:300, p2:649, p3:1100 }
+  };
+
+  /* ═══ FUNZIONI PURE ═══════════════════════════════════════════════════ */
+  function inScala(k, v) { var d = T16[k].dom; return v >= d[0] && v <= d[1]; }
+  function strato3(k, v) {
+    var t = T16[k];
+    if (t.su) { if (t.bI ? v >= t.b : v > t.b) return "b"; if (v < t.a) return "a"; return "i"; }
+    if (v < t.b) return "b"; if (v > t.a) return "a"; return "i";
+  }
+  function bucoCi(v) { return v > 2.4 && v < 2.5; }
+  function puntiD6(d) { var t = T18.d6; return d > t.p1 ? 1 : (d >= t.p2 ? 2 : (d >= t.p3 ? 3 : 4)); }
+  function puntiPep(tipo, v) { var t = T18[tipo]; return v < t.p1 ? 1 : (v <= t.p2 ? 2 : (v <= t.p3 ? 3 : 4)); }
+  // fra 319 e 320 m, fra 199 e 200, fra 649 e 650 la tabella non colloca: si legge nella fascia di rischio piu' alto
+  function bucoD6(d) { return d > T18.d6.p2 - 1 && d < T18.d6.p2; }
+  function bucoPep(tipo, v) { var t = T18[tipo]; return v > t.p2 && v < t.p2 + 1; }
+  // all'intero piu' vicino, il mezzo verso l'alto: su interi, senza errori di virgola
+  function arrot(somma, n) { return Math.floor((2 * somma + n) / (2 * n)); }
+  function scenari(somma, manca) {
+    var val = manca === "who" ? [1, 3, 4] : [1, 2, 3, 4], i, r = [];
+    for (i = 0; i < val.length; i++) r.push({ p:val[i], st:arrot(somma + val[i], 3) });
+    return r;
+  }
+
+  // le variabili della Tab. 16 compilate, nell'ordine della tabella
+  function righe3(s) {
+    var r = [], fuori = [], i, k, t, c;
+    for (i = 0; i < ORD3.length; i++) {
+      k = ORD3[i];
+      if (C16[k]) { if (s[k]) { c = C16[k].v[s[k]]; r.push({ k:k, nome:C16[k].nome, val:c[0], st:c[1] }); } continue; }
+      if (k === "pep") {
+        if (s.pv !== null && s.pep) {
+          t = T16[s.pep];
+          if (!inScala(s.pep, s.pv)) fuori.push(t.nome + " " + fmt(s.pv));
+          else r.push({ k:"pep", nome:t.nome, val:fmt(s.pv) + " " + t.u, st:strato3(s.pep, s.pv) });
+        }
+        continue;
+      }
+      if (s[k] === null) continue;
+      t = T16[k];
+      if (!inScala(k, s[k])) { fuori.push(t.nome + " " + fmt(s[k])); continue; }
+      r.push({ k:k, nome:t.nome, val:fmt(s[k]) + (t.u ? " " + t.u : ""), st:strato3(k, s[k]), buco:k === "ci" && bucoCi(s[k]) });
+    }
+    return { r:r, fuori:fuori };
+  }
+
+  function tre(s) {
+    var x = righe3(s), conti = { b:0, i:0, a:0, bi:0 }, i, manca = [], ha = {}, emo = false, buco = false;
+    for (i = 0; i < x.r.length; i++) { conti[x.r[i].st]++; ha[x.r[i].k] = 1; if (EMO.indexOf(x.r[i].k) >= 0) emo = true; if (x.r[i].buco) buco = true; }
+    if (!ha.who) manca.push("la WHO-FC");
+    if (!ha.d6) manca.push("la 6MWD");
+    if (!ha.pep) manca.push(s.pv !== null && !s.pep ? "se il peptide è BNP o NT-proBNP" : "il peptide");
+    if (!emo) manca.push("l'emodinamica");
+    var emoFatte = [], emoVuote = [];
+    for (i = 0; i < EMO.length; i++) (ha[EMO[i]] ? emoFatte : emoVuote).push(T16[EMO[i]].nome);
+    var o = { righe:x.r, conti:conti, manca:manca, buco:buco, emoFatte:emoFatte, emoVuote:emoVuote, rapCi:!!(ha.rap && ha.ci) };
+    if (x.fuori.length) { o.stato = "fuori"; o.fuori = x.fuori; return o; }
+    if (!x.r.length) { o.stato = "vuoto"; return o; }
+    if (manca.length) { o.stato = "parziale"; return o; }
+    // Lettura dello strumento, non della fonte: se le variabili con il peso maggiore (p. 3659) stanno tutte
+    // in una colonna e nessun'altra sta piu' in alto, il quadro e' coerente e lo strato e' quello. Mai verso il basso.
+    if ((conti.a > 0 && (conti.b || conti.i || conti.bi)) || (conti.b > 0 && conti.i > 0)) {
+      var RANGO = { b:0, i:1, a:2 }, ks = "", una = true, sopra = false;
+      for (i = 0; i < x.r.length; i++) if (CHIAVI[x.r[i].k]) { if (ks && ks !== x.r[i].st) una = false; ks = x.r[i].st; }
+      for (i = 0; una && i < x.r.length; i++) if (!CHIAVI[x.r[i].k] && x.r[i].st !== "bi" && RANGO[x.r[i].st] > RANGO[ks]) sopra = true;
+      if (una && !sopra) { o.stato = "coerente"; o.strato = ks; return o; }
+      o.stato = "discorde";
+      return o;
+    }
+    o.stato = "concorde";
+    o.strato = conti.a > 0 ? "a" : (conti.i > 0 ? "i" : "b");
+    // Decisione del medico del 01/11/2026: un basso automatico vuole almeno RAP e CI; senza, «—» e scelta a mano.
+    // Solo il basso: alzare lo strato con dati parziali e' prudente. Lettura nostra, dichiarata.
+    if (o.strato === "b" && !o.rapCi) {
+      if (!ha.rap) manca.push("la RAP");
+      if (!ha.ci) manca.push("l'indice cardiaco");
+      o.stato = "parziale";
+      o.bassoSenza = true;
+      o.strato = "";
+    }
+    return o;
+  }
+
+  function quattro(s) {
+    var v = [], manca = [], fuori = [], buchi = [], senza = "";
+    if (s.who) v.push({ k:"who", nome:"WHO-FC", val:s.who, p:T18.who[s.who] }); else { manca.push("la WHO-FC"); senza = "who"; }
+    if (s.d6 === null) { manca.push("la 6MWD"); senza = "d6"; }
+    else if (!inScala("d6", s.d6)) fuori.push("6MWD " + fmt(s.d6));
+    else { v.push({ k:"d6", nome:"6MWD", val:fmt(s.d6) + " m", p:puntiD6(s.d6) }); if (bucoD6(s.d6)) buchi.push("6MWD fra 319 e 320 m"); }
+    if (s.pv === null) { manca.push("il peptide"); senza = "pep"; }
+    else if (!s.pep) { manca.push("se il peptide è BNP o NT-proBNP"); senza = "pep"; }
+    else if (!inScala(s.pep, s.pv)) fuori.push(T16[s.pep].nome + " " + fmt(s.pv));
+    else { v.push({ k:"pep", nome:T16[s.pep].nome, val:fmt(s.pv) + " ng/L", p:puntiPep(s.pep, s.pv) }); if (bucoPep(s.pep, s.pv)) buchi.push(T16[s.pep].nome + " fra " + T18[s.pep].p2 + " e " + (T18[s.pep].p2 + 1)); }
+    var o = { v:v, manca:manca, buchi:buchi, n:v.length, senza:senza };
+    if (fuori.length) { o.stato = "fuori"; o.fuori = fuori; return o; }
+    if (v.length < 2) { o.stato = "pochi"; return o; }
+    // un valore scritto senza il tipo non e' un peptide mancante: contare solo le altre due puo' dare un basso falso
+    if (s.pv !== null && !s.pep) { o.stato = "tipo"; return o; }
+    var somma = 0, mi = 9, ma = 0, i;
+    for (i = 0; i < v.length; i++) { somma += v[i].p; if (v[i].p < mi) mi = v[i].p; if (v[i].p > ma) ma = v[i].p; }
+    o.stato = "ok"; o.somma = somma; o.media = somma / v.length; o.strato = arrot(somma, v.length);
+    o.mezzo = v.length === 2 && somma % 2 === 1;
+    o.eccesso = Math.ceil(o.media);
+    o.distanza = ma - mi;
+    o.tipoDue = v.length === 2 ? (senza === "pep" ? "due-funzionali" : "funzionale-peptide") : "";
+    if (v.length === 2) o.scen = scenari(somma, senza);
+    return o;
+  }
+
+  // dati che si contraddicono: si segnalano, non si correggono
+  function contra(s) {
+    var c = [];
+    if (s.who === "IV" && s.scomp === "no") c.push("<b>WHO-FC IV senza segni di scompenso destro.</b> La classe IV li comprende per definizione" + pgs(P56) + ": uno dei due dati va ricontrollato.");
+    if (s.scomp === "si" && (s.who === "I" || s.who === "II")) c.push("<b>Segni di scompenso destro con WHO-FC " + s.who + ".</b> La Tab. 15 lega i segni alla classe IV" + pgs(P56) + ": uno dei due dati va ricontrollato.");
+    if (s.who === "IV" && s.d6 !== null && s.d6 > T18.d6.p1) c.push("<b>WHO-FC IV con una 6MWD oltre 440 m.</b> La classe IV è il paziente che non fa nessuna attività senza sintomi" + pgs(P56) + ": uno dei due dati va ricontrollato.");
+    if ((s.who === "I") && s.d6 !== null && s.d6 < T18.d6.p3) c.push("<b>WHO-FC I con una 6MWD sotto 165 m.</b> La classe I è senza limitazione" + pgs(P56) + ": la distanza va letta nel contesto (ortopedia, età, comorbidità" + pgs(T16p + ", nota c") + "), o il dato ricontrollato.");
+    return c;
+  }
+
+  /* ═══ STATO E DISEGNO ═════════════════════════════════════════════════ */
+  var T16p = "ESC/ERS 2022, Tab. 16, p. 3657", T17p = "ESC/ERS 2022, Tab. 17, p. 3658", T18p = "ESC/ERS 2022, Tab. 18, p. 3659", R4 = "ESC/ERS 2022, Rec. Table 4, p. 3660",
+      P56 = "ESC/ERS 2022, Tab. 15, p. 3656", P57 = "ESC/ERS 2022, p. 3657", P58 = "ESC/ERS 2022, p. 3658", P59 = "ESC/ERS 2022, p. 3659", P60 = "ESC/ERS 2022, p. 3660", P71 = "ESC/ERS 2022, p. 3671", F9 = "ESC/ERS 2022, Fig. 9, p. 3666",
+      R13 = "ESC/ERS 2022, Rec. Table 13, p. 3673", T20 = "ESC/ERS 2022, Tab. 20, p. 3672", W9 = "WSPH 2024, rischio, p. 9", E27 = "ERS 2026, Fig. 2, note c–d, p. 27";
+
+  function el(id) { return document.getElementById(id); }
+  function fmt(x) { return String(x).replace(".", ","); }
+  function ckv(id) { var e = el(id); return !!(e && e.checked); }
+  function num(id) { var v = el(id).value; if (v === "") return null; var n = parseFloat(String(v).replace(",", ".")); return isNaN(n) ? null : n; }
+  function radio(n) { var e = document.querySelector('input[name="' + n + '"]:checked'); return e ? e.value : ""; }
+  function pgs(p) { return ' <span class="pg">' + p + "</span>"; }
+  function corPill(c, l) { var k = { "I":"c1", "IIa":"c2a", "IIb":"c2b", "III":"c3" }[c]; return '<span class="cor ' + k + '">' + c + "</span>" + (l ? ' <span class="cor ' + k + '" style="opacity:.85">' + l + "</span>" : ""); }
+  function nota(g, t) { return '<div class="nota ' + (g || "") + '">' + t + "</div>"; }
+  function chip(k, t) { return '<span class="cat ' + k + '">' + t + "</span>"; }
+  function sc(k, t) { return '<span class="sc ' + k + '">' + t + "</span>"; }
+  function passo(att, ico, t) { return '<div class="passo' + (att ? " att" : "") + '"><span class="ico">' + ico + '</span><span class="tx">' + t + "</span></div>"; }
+  function med(x) { return Math.round(x) === x ? String(x) : x.toFixed(2).replace(".", ","); }
+  function pti(n) { return n + (n === 1 ? " punto" : " punti"); }
+  function elenco(a) { return a.length < 2 ? a.join("") : a.slice(0, -1).join(", ") + " e " + a[a.length - 1]; }
+  function manca(a) { return (a.length === 1 ? "manca " : "mancano ") + elenco(a); }
+
+  function S() {
+    var s = { forma:radio("forma"), mom:radio("mom"), comorb:ckv("comorb"), who:radio("who"), pep:radio("pep"), pv:num("pv"),
+              scomp:radio("scomp"), prog:radio("prog"), sinc:radio("sinc"), vers:radio("vers"), giud:radio("giud") }, k;
+    for (k in T16) if (T16.hasOwnProperty(k) && k !== "bnp" && k !== "nt") s[k] = num(k);
+    return s;
+  }
+
+  // il riassunto che serve alla barra e al resto: pure, dallo stato
+  function valuta(s) {
+    var m = [];
+    if (!s.forma) m.push("la forma");
+    if (s.forma === "grp" || s.forma === "bimbo") return { stato:"nonvale" };
+    if (!s.mom) m.push("il momento");
+    if (m.length) return { stato:"manca", manca:m };
+    if (s.mom === "dia") {
+      var t = tre(s), o = { stato:"dia", t:t };
+      if (t.stato === "concorde") { o.strato = t.strato; o.giudizio = false; }
+      else if (t.stato === "coerente") { o.strato = s.giud || t.strato; o.giudizio = !!s.giud; }
+      else if ((t.stato === "discorde" || t.stato === "parziale") && s.giud) { o.strato = s.giud; o.giudizio = true; }
+      return o;
+    }
+    return { stato:"fu", q:quattro(s), extra:righe3(s) };
+  }
+
+  function disegnaCampi(s) {
+    var dia = s.mom === "dia", fu = s.mom === "fu", i, k, chk = document.querySelectorAll(".chk");
+    for (i = 0; i < chk.length; i++) {
+      var inp = chk[i].querySelector("input"), on = !!(inp && inp.checked);
+      if (on && (" " + chk[i].className + " ").indexOf(" on ") < 0) chk[i].className += " on";
+      if (!on) chk[i].className = chk[i].className.replace(/(^|\s)on(\s|$)/g, " ").replace(/\s+$/, "");
+    }
+    // i tagli accanto ai tre campi di base dipendono dal modello
+    el("cWho").innerHTML = dia ? "basso I o II · intermedio III · alto IV" : (fu ? "1 punto I o II · 3 punti III · 4 punti IV · <b>nessuna classe vale 2</b>" : "Tab. 15, p. 3656");
+    el("cD6").innerHTML = dia ? "basso &gt; 440 · intermedio 165–440 · alto &lt; 165" : (fu ? "1 punto &gt; 440 · 2 punti 320–440 · 3 punti 165–319 · 4 punti &lt; 165" : "distanza assoluta, non il predetto");
+    var pt = "1 ng/L = 1 pg/mL";
+    if (dia && s.pep === "bnp") pt = "basso &lt; 50 · intermedio 50–800 · alto &gt; 800";
+    if (dia && s.pep === "nt") pt = "basso &lt; 300 · intermedio 300–1100 · alto &gt; 1100";
+    if (fu && s.pep === "bnp") pt = "1 punto &lt; 50 · 2 punti 50–199 · 3 punti 200–800 · 4 punti &gt; 800";
+    if (fu && s.pep === "nt") pt = "1 punto &lt; 300 · 2 punti 300–649 · 3 punti 650–1100 · 4 punti &gt; 1100";
+    el("cPep").innerHTML = pt;
+    el("wBase").innerHTML = dia ? "Tab. 16, p. 3657" : (fu ? "Tab. 18, p. 3659" : "Tab. 16, p. 3657 · Tab. 18, p. 3659");
+    el("tAltre").innerHTML = fu ? "Le variabili aggiuntive, quando servono" : "Le altre variabili della Tab. 16";
+    el("notaAltre").innerHTML = fu
+      ? "<b>Al follow-up non entrano nella media.</b> I tagli a quattro strati per ecocardiogramma ed emodinamica non esistono ancora" + pgs(P59) + ": qui si leggono con quelli a tre strati, e si aggiungono quando servono " + corPill("I", "B") + pgs(R4) + ". Ciascuna è facoltativa."
+      : (dia ? "<b>Alla diagnosi entrano tutte nel quadro</b>, emodinamica compresa " + corPill("I", "B") + pgs(R4) + ". WHO-FC, 6MWD, peptide ed emodinamica sono le quattro che lo strumento chiede prima di dire uno strato" + pgs(P59) + "; per un basso automatico, dell'emodinamica almeno RAP e indice cardiaco (decisione del medico del 01/11/2026)." : "Tagli del modello a tre strati. Ciascuna è facoltativa.");
+
+    // i valori accanto ai campi
+    function pts(p) { return sc(K4[p], pti(p)); }
+    el("vWho").innerHTML = !s.who ? "—" : (dia ? sc(K3[C16.who.v[s.who][1]], NOME3[C16.who.v[s.who][1]]) : (fu ? pts(T18.who[s.who]) : "—"));
+    el("vD6").innerHTML = s.d6 === null ? "—" : (!inScala("d6", s.d6) ? "fuori scala" : (dia ? sc(K3[strato3("d6", s.d6)], NOME3[strato3("d6", s.d6)]) : (fu ? pts(puntiD6(s.d6)) : "—")));
+    el("vPep").innerHTML = s.pv === null ? "—" : (!s.pep ? "BNP o NT-proBNP?" : (!inScala(s.pep, s.pv) ? "fuori scala" : (dia ? sc(K3[strato3(s.pep, s.pv)], NOME3[strato3(s.pep, s.pv)]) : (fu ? pts(puntiPep(s.pep, s.pv)) : "—"))));
+    var cat = ["scomp", "prog", "sinc", "vers"], nu = ["vo2", "vo2p", "ve", "ad", "ts", "rvef", "svrm", "rvesvi", "rap", "ci", "svi", "svo2"];
+    for (i = 0; i < cat.length; i++) { k = cat[i]; el("v_" + k).innerHTML = s[k] ? sc(K3[C16[k].v[s[k]][1]], NOME3[C16[k].v[s[k]][1]]) : "—"; }
+    for (i = 0; i < nu.length; i++) {
+      k = nu[i];
+      el("v_" + k).innerHTML = s[k] === null ? "—" : (!inScala(k, s[k]) ? "fuori scala" : sc(K3[strato3(k, s[k])], NOME3[strato3(k, s[k])]) + (k === "ci" && bucoCi(s[k]) ? " nel buco della tabella" : ""));
+    }
+
+    // la nota sotto la forma
+    var h = "";
+    if (s.forma === "altra") h += nota("", "<b>Forma fuori dalla validazione del modello a quattro strati</b>, che regge nella PAH idiopatica, ereditaria, da farmaci, da connettivite con la sclerosi sistemica, e porto-polmonare" + pgs(P59) + ". Lo strumento calcola lo stesso: lo strato si legge con cautela. In alcune eziologie il basso rischio non sempre si raggiunge, e si ottimizza caso per caso " + corPill("IIa", "B") + pgs(R4) + ".");
+    if (s.comorb) h += nota("", "<b>Con le comorbidità cardiopolmonari la stratificazione serve poco a decidere la terapia</b>" + pgs(P71) + ", e il basso rischio non sempre si raggiunge: si ottimizza caso per caso " + corPill("IIa", "B") + pgs(R4) + ". Il Tool Terapia PAH ha la colonna di questi pazienti.");
+    el("notaForma").innerHTML = h;
+  }
+
+  function esito(k, t, dopo) { return '<div class="esito">' + chip(k, t) + (dopo ? '<span class="muted">' + dopo + "</span>" : "") + "</div>"; }
+
+  function disegnaStrato(s, R) {
+    var h = "<h3>Lo strato</h3>", t, q, i, c;
+    el("cardGiudizio").className = "card hide";
+    if (R.stato === "manca") h += esito("kx", "—", manca(R.manca));
+    if (R.stato === "nonvale" && s.forma === "grp") h += esito("kx", "—", "non vale") + nota("stop", "<b>Questi due modelli sono della PAH dell'adulto</b>" + pgs(R4) + ": nei gruppi 2–5 lo strumento non dà uno strato. Cuore sinistro e polmone: <b>Tool Gruppi 2 e 3</b>. Malattia tromboembolica cronica: <b>Tool CTEPH</b>.");
+    if (R.stato === "nonvale" && s.forma === "bimbo") h += esito("kx", "—", "non vale") + nota("stop", "<b>Sotto i 18 anni lo strumento non dà uno strato.</b> Nel bambino la strategia parte dal rischio, presa dall'adulto ma adattata all'età " + corPill("I", "C") + pgs("ESC/ERS 2022, Rec. Table 21, p. 3685") + ", con determinanti propri: sezione 13 della scheda e progetto pediatrico.");
+    if (R.stato === "dia") {
+      t = R.t;
+      if (t.stato === "fuori") h += esito("kx", "—", "fuori scala: " + t.fuori.join("; "));
+      else if (t.stato === "vuoto") h += esito("kx", "—", "mancano le variabili: almeno " + elenco(t.manca));
+      else if (R.giudizio) {
+        h += '<div class="esito"><span class="big">Rischio ' + NOME3[R.strato] + "</span>" + chip(K3[R.strato], "mortalità stimata a 1 anno " + MORT3[R.strato]) + chip("kx", "giudizio tuo") + "</div>";
+        h += '<div class="muted" style="font-size:12px">' + T16p + ". Non viene da un conto: lo hai scelto tu" + (t.stato === "coerente" ? ", al posto della lettura dello strumento, che era «" + NOME3[t.strato] + "»" : "") + ".</div>";
+        if (t.stato === "parziale") h += nota("", "<b>Giudizio con dati incompleti:</b> " + manca(t.manca) + ". La riga di classe I chiede tutti i dati disponibili, emodinamica compresa " + corPill("I", "B") + pgs(R4) + ".");
+        if (R.strato !== "a" && t.conti.a > 0) h += nota("stop", "<b>" + (t.conti.a === 1 ? "Una variabile" : t.conti.a + " variabili") + " in alto rischio</b> e strato «" + NOME3[R.strato] + "». La fonte non dice quante ne bastino" + pgs(P59) + ", ma è questo il confine che alla diagnosi cambia la terapia iniziale" + pgs(F9 + "; " + W9) + ": va pesato qui.");
+        if (R.strato === "b" && t.conti.i > 0) h += nota("", "<b>Basso con " + (t.conti.i === 1 ? "una variabile intermedia" : t.conti.i + " variabili intermedie")  + ".</b> Alla diagnosi basso e intermedio hanno la stessa riga di terapia" + pgs(F9) + ": la differenza conta per l'obiettivo e per il controllo.");
+        if (R.strato === "a" && t.conti.a === 0) h += nota("", "<b>Alto senza nessuna variabile in alto rischio</b> fra quelle compilate: è un giudizio tuo. Porta alla riga della triplice con il prostanoide" + pgs(F9) + ".");
+      }
+      else if (t.stato === "parziale") {
+        h += esito("kx", "—", manca(t.manca) + (t.bassoSenza ? ": quel che c'è sta nel basso, ma per un basso automatico servono almeno RAP e indice cardiaco" : ": la riga di classe I chiede tutti i dati disponibili, emodinamica compresa"));
+        if (t.bassoSenza) h += nota("", "<b>Almeno RAP e indice cardiaco, e solo per il basso:</b> lettura nostra, decisione del medico del 01/11/2026. Intermedio e alto escono anche con dati parziali, perché alzare lo strato è prudente; abbassarlo no.");
+        h += '<div class="vv" style="font-size:12.5px">Finora: basso ' + t.conti.b + " · intermedio " + t.conti.i + " · alto " + t.conti.a + (t.conti.bi ? " · in due colonne " + t.conti.bi : "") + "</div>";
+        h += '<div class="muted" style="font-size:12px">' + corPill("I", "B") + pgs(R4) + ". Se un dato non si può avere, sotto puoi scegliere lo strato: resterà scritto che manca.</div>";
+      }
+      else if (t.stato === "discorde") {
+        h += '<div class="esito"><span class="big">Quadro discordante</span>' + chip("kx", "basso " + t.conti.b + " · intermedio " + t.conti.i + " · alto " + t.conti.a) + "</div>";
+        h += '<div class="muted" style="font-size:13px">Non è una media: alla diagnosi la fonte non dà un conto. Il quadro lo pesi tu, qui sotto, con più peso a tipo di malattia, WHO-FC, 6MWD, peptide ed emodinamica' + pgs(P59) + ".</div>";
+      }
+      else if (t.stato === "coerente") {
+        h += '<div class="esito"><span class="big">Rischio ' + NOME3[t.strato] + "</span>" + chip(K3[t.strato], "mortalità stimata a 1 anno " + MORT3[t.strato]) + "</div>";
+        h += '<div class="muted" style="font-size:12px">' + T16p + ". Quadro coerente: WHO-FC, 6MWD, peptide ed emodinamica stanno tutte in questa colonna, e nessun'altra variabile sta più in alto; le altre sono in una colonna più bassa. Non è una media, e non è scritto nella fonte: è la <b>lettura dello strumento</b>, e sotto puoi cambiarla.</div>";
+      }
+      else if (t.stato === "concorde") {
+        h += '<div class="esito"><span class="big">Rischio ' + NOME3[t.strato] + "</span>" + chip(K3[t.strato], "mortalità stimata a 1 anno " + MORT3[t.strato]) + "</div>";
+        h += '<div class="muted" style="font-size:12px">' + T16p + ". Quadro concorde: tutte le " + t.righe.length + " variabili compilate stanno in questa colonna" + (t.conti.bi ? " (i segni di scompenso destro assenti stanno sia nel basso sia nell'intermedio)" : "") + ". Non è una media.</div>";
+      }
+      // una sola delle quattro basta a dire "emodinamica": un dato vuoto non vale normale, e lo strumento lo dice
+      if ((t.stato === "concorde" || t.stato === "coerente" || t.stato === "discorde") && t.emoVuote.length) h += nota(R.strato === "b" && !t.rapCi ? "stop" : "", "<b>Emodinamica parziale: c'è " + elenco(t.emoFatte) + ", mancano " + elenco(t.emoVuote) + ".</b> Un dato vuoto non vale «normale»: uno strato che esce da qui vale sui dati compilati, e un valore in più può cambiarlo. La riga di classe I chiede tutti i dati disponibili " + corPill("I", "B") + pgs(R4) + "." + (R.strato === "i" || R.strato === "a" ? " La regola di RAP e indice cardiaco tocca solo il basso: alzare lo strato con dati parziali è prudente (decisione del medico del 01/11/2026)." : ""));
+      if (t.stato === "discorde" || t.stato === "parziale" || t.stato === "coerente") el("cardGiudizio").className = "card";
+    }
+    if (R.stato === "fu") {
+      q = R.q;
+      if (q.stato === "fuori") h += esito("kx", "—", "fuori scala: " + q.fuori.join("; "));
+      if (q.stato === "pochi") h += esito("kx", "—", "servono almeno due variabili: " + manca(q.manca)) + '<div class="muted" style="font-size:12px">' + P59 + ": il modello è stato costruito con tutte e tre; con due si può, meglio una funzionale con il peptide; con una sola no.</div>";
+      if (q.stato === "tipo") h += esito("kx", "—", "hai scritto il valore " + fmt(s.pv) + ": manca se il peptide è BNP o NT-proBNP") + '<div class="muted" style="font-size:12px">Senza il tipo il valore non si può contare, e senza quel valore lo strato potrebbe uscire più basso. ' + T18p + ".</div>";
+      if (q.stato === "ok") {
+        var add = [];
+        for (i = 0; i < q.v.length; i++) add.push(q.v[i].p);
+        h += '<div class="esito"><span class="big">Rischio ' + NOME4[q.strato] + "</span>" + chip(K4[q.strato], "mortalità osservata nei registri a 1 anno " + MORT4[q.strato]) + "</div>";
+        h += '<div class="vv" style="font-size:13px">(' + add.join(" + ") + ") ÷ " + q.n + " = " + med(q.media) + (Math.round(q.media) === q.media ? "" : " → " + q.strato) + "</div>";
+        h += '<div class="muted" style="font-size:12px">Punti: ' + T18p + ". Mortalità: " + P59 + ".</div>";
+        if (q.tipoDue === "funzionale-peptide") h += nota("info", "<b>Due variabili, una funzionale e il peptide:</b> è la coppia che la fonte preferisce quando ne manca una; il modello è stato validato con tutte e tre" + pgs(P59) + ".");
+        if (q.tipoDue === "due-funzionali") h += nota("", "<b>Due variabili, entrambe funzionali, senza il peptide.</b> Con due si può, ma la fonte preferisce una funzionale con il peptide" + pgs(P59) + ": il peptide va chiesto.");
+        if (q.mezzo) h += nota("", "<b>La media cade a metà: " + med(q.media) + " → " + q.strato + ".</b> Sul mezzo né la fonte né il 7th World Symposium decidono: si sale allo strato più alto, ed è una <b>lettura nostra</b>, la più prudente (decisione del medico del 01/11/2026).");
+        if (q.strato === 1 && q.media > 1) h += nota("", "<b>Basso per arrotondamento:</b> una variabile sta fuori dal basso, e la media " + med(q.media) + " va a 1. Vale come basso rischio per la tabella; quella variabile resta da guardare.");
+        if (q.distanza >= 2) h += nota("", "<b>Variabili discordanti:</b> distano " + q.distanza + " strati, e la media lo nasconde. Quando serve si aggiungono imaging del cuore destro ed emodinamica" + pgs(P60) + ": sono nel passo 3.");
+        if (q.buchi.length) h += nota("", "<b>" + q.buchi.join("; ") + ":</b> la tabella non colloca il valore. Lo strumento lo legge nella fascia di rischio più alto, lettura nostra" + pgs(T18p) + ".");
+        if (R.extra.fuori.length) h += nota("", "<b>Fuori scala, non contate fra le aggiuntive:</b> " + R.extra.fuori.join("; ") + ".");
+        var ex = R.extra.r, na = [], ni = [];
+        for (i = 0; i < ex.length; i++) {
+          if (ex[i].k === "who" || ex[i].k === "d6" || ex[i].k === "pep") continue;
+          if (ex[i].st === "a") na.push(ex[i].nome);
+          if (ex[i].st === "i") ni.push(ex[i].nome);
+        }
+        if (na.length && q.strato < 4) h += nota("stop", "<b>In alto rischio con i tagli della Tab. 16: " + elenco(na) + ".</b> Non cambia i punti, ma lo strato «" + NOME4[q.strato] + "» non basta a rassicurare: le variabili aggiuntive si tengono in conto " + corPill("I", "B") + pgs(R4) + ".");
+        if (q.strato === 1 && ni.length) h += nota("", "<b>Fuori dal basso con i tagli della Tab. 16: " + elenco(ni) + ".</b> Non cambia i punti: si considera insieme allo strato " + corPill("I", "B") + pgs(R4) + ".");
+      }
+    }
+    if (R.stato === "dia" || R.stato === "fu") {
+      c = contra(s);
+      for (i = 0; i < c.length; i++) h += nota("stop", c[i]);
+    }
+    el("outStrato").innerHTML = h;
+  }
+
+  var NOMI_ORD = { scomp:"segni di scompenso destro", prog:"progressione", sinc:"sincope", who:"WHO-FC", d6:"6MWD", vo2:"picco VO₂", vo2p:"picco VO₂ in % del predetto", ve:"VE/VCO₂ slope", pep:"peptide", ad:"area dell'atrio destro", ts:"TAPSE/sPAP", vers:"versamento", rvef:"RVEF", svrm:"SVI alla risonanza", rvesvi:"RVESVI", rap:"RAP", ci:"indice cardiaco", svi:"SVI al cateterismo", svo2:"SvO₂" };
+
+  function tabella3(righe, chiavi) {
+    var h = '<table class="tab"><tr><th>Variabile</th><th>Qui</th><th>Strato</th></tr>', i, r;
+    for (i = 0; i < righe.length; i++) {
+      r = righe[i];
+      h += "<tr><td>" + (chiavi && CHIAVI[r.k] ? "<b>" + r.nome + "</b>" : r.nome) + "</td><td>" + r.val + "</td><td>" + sc(K3[r.st], NOME3[r.st]) + (r.buco ? "<sup>*</sup>" : "") + "</td></tr>";
+    }
+    return h + "</table>";
+  }
+
+  function disegnaCome(s, R) {
+    var h = "<h3>Come ci si arriva</h3>", i, t, q;
+    if (R.stato === "dia") {
+      t = R.t;
+      if (!t.righe.length) h += '<div class="muted">Nessuna variabile compilata.</div>';
+      else {
+        h += tabella3(t.righe, true);
+        h += '<div class="muted" style="font-size:12px;margin-top:4px">' + T16p + ". In grassetto le variabili su cui la fonte chiede più peso, con il tipo di malattia" + pgs(P59) + ". Il valore di confine sta nell'intermedio." + (t.buco ? " <sup>*</sup> Fra 2,4 e 2,5 la tabella non colloca: letto come intermedio, lettura nostra." : "") + "</div>";
+        var fatte = {}, non = [];
+        for (i = 0; i < t.righe.length; i++) fatte[t.righe[i].k] = 1;
+        for (i = 0; i < ORD3.length; i++) if (!fatte[ORD3[i]]) non.push(NOMI_ORD[ORD3[i]]);
+        if (non.length) h += '<div class="conta"><b>Compilate ' + t.righe.length + " su " + ORD3.length + ".</b> Mancano: " + non.join(", ") + ". Non c'è un conto, quindi una variabile in più non sposta un numero, ma può cambiare il quadro" + pgs(P59) + ".</div>";
+      }
+    } else if (R.stato === "fu") {
+      q = R.q;
+      if (q.v.length) {
+        h += '<table class="tab"><tr><th>Variabile</th><th>Qui</th><th>Punti</th></tr>';
+        for (i = 0; i < q.v.length; i++) h += "<tr><td>" + q.v[i].nome + "</td><td>" + q.v[i].val + '</td><td class="n">' + sc(K4[q.v[i].p], String(q.v[i].p)) + "</td></tr>";
+        if (q.stato === "ok") h += "<tr><td><b>Somma</b></td><td>" + q.n + ' variabili</td><td class="n"><b>' + q.somma + "</b></td></tr><tr><td><b>Media</b></td><td></td><td class=\"n\"><b>" + med(q.media) + "</b></td></tr>";
+        h += "</table>";
+        h += '<div class="muted" style="font-size:12px;margin-top:4px">' + T18p + ". WHO-FC I e II valgono entrambe 1 punto: nessuna classe vale 2.</div>";
+      } else h += '<div class="muted">Nessuna variabile compilata.</div>';
+      if (q.stato === "ok" && q.n === 3) h += '<div class="conta">Tutte e tre le variabili: è la condizione in cui il modello è stato validato' + pgs(P59) + ".</div>";
+      if (q.stato === "ok" && q.n === 2) {
+        var nome = q.senza === "who" ? "la WHO-FC" : (q.senza === "d6" ? "la 6MWD" : "il peptide"), grp = {}, ordine = [], x;
+        for (i = 0; i < q.scen.length; i++) { x = q.scen[i]; if (!grp[x.st]) { grp[x.st] = []; ordine.push(x.st); } grp[x.st].push(x.p); }
+        var parti = [];
+        for (i = 0; i < ordine.length; i++) parti.push("con " + elencoO(grp[ordine[i]]) + (grp[ordine[i]].length === 1 && grp[ordine[i]][0] === 1 ? " punto" : " punti") + " → <b>" + NOME4[ordine[i]] + "</b>");
+        h += '<div class="conta"><b>Che cosa cambierebbe ' + nome + ", che manca:</b> " + parti.join(" · ") + (q.senza === "who" ? " (la WHO-FC non vale mai 2)" : "") + ". Calcolato con tre variabili, sulla stessa regola.</div>";
+      }
+      var ex = [], ri = R.extra.r;
+      for (i = 0; i < ri.length; i++) if (ri[i].k !== "who" && ri[i].k !== "d6" && ri[i].k !== "pep") ex.push(ri[i]);
+      if (ex.length) {
+        h += '<h3 class="sep">Variabili aggiuntive, che non entrano nella media</h3>' + tabella3(ex, false);
+        h += '<div class="muted" style="font-size:12px;margin-top:4px">Con i tagli a tre strati della Tab. 16: per l\'imaging e l\'emodinamica quelli a quattro strati non ci sono' + pgs(P59) + ".</div>";
+      }
+    } else h += '<div class="muted">—</div>';
+    el("outCome").innerHTML = h;
+  }
+  function elencoO(a) { return a.length < 2 ? a.join("") : a.slice(0, -1).join(", ") + " o " + a[a.length - 1]; }
+
+  function disegnaPoi(s, R) {
+    var h = "<h3>Il passo dopo</h3>", st = null, q;
+    if (R.stato === "nonvale") { el("outPoi").innerHTML = h + '<div class="muted">Qui niente: vedi la nota nello strato.</div>'; return; }
+    if (R.stato === "dia" && R.strato) {
+      st = R.strato;
+      h += passo(true, "→", "<b>Terapia iniziale: Tool Terapia PAH</b>, che riparte da questo strato, dalle comorbidità e dal test di vasoreattività. Basso e intermedio hanno la stessa riga; il confine che cambia la terapia iniziale è l'alto" + pgs(F9 + "; " + W9) + ".");
+      var grave = (s.rap !== null && s.rap >= 20) || (s.ci !== null && s.ci < 2) || (s.svi !== null && s.svi < 31);
+      if (st === "i" && grave) h += passo(true, "!", "<b>Intermedio con emodinamica molto compromessa</b>: per queste soglie la triplice con il prostanoide si può considerare" + pgs("ESC/ERS 2022, Rec. Table 8A, nota d, p. 3669") + ": la riga è nel Tool Terapia PAH, che chiede anche la PVR.");
+      if (st === "a") h += passo(true, "→", "<b>Trapianto:</b> il bisogno di un prostanoide e.v. o s.c. è un criterio d'invio" + pgs(T20) + ". Il dettaglio, con le righe di classe, è nel Tool Terapia PAH.");
+      h += passo(false, "↻", "<b>Al primo controllo</b>, 3–6 mesi dopo l'inizio della terapia" + pgs(T17p) + ", si passa al modello a <b>quattro strati</b> " + corPill("I", "B") + pgs(R4) + ".");
+    }
+    if (R.stato === "fu" && R.q.stato === "ok") {
+      q = R.q; st = q.strato;
+      if (st === 1) {
+        var altiX = [], jx;
+        for (jx = 0; jx < R.extra.r.length; jx++) if (R.extra.r[jx].k !== "who" && R.extra.r[jx].k !== "d6" && R.extra.r[jx].k !== "pep" && R.extra.r[jx].st === "a") altiX.push(R.extra.r[jx].nome);
+        if (altiX.length) h += passo(true, "!", "<b>Basso per i punti, ma " + elenco(altiX) + " in alto rischio con i tagli della Tab. 16:</b> l'obiettivo non si dà per raggiunto senza averle pesate " + corPill("I", "B") + pgs(R4) + ". Che cosa fare con la terapia: Tool Terapia PAH.");
+        else if (q.n === 2) h += passo(true, "→", "<b>Basso sulle due variabili compilate, non sulle tre con cui il modello è stato validato</b>" + pgs(P59) + ": " + (q.senza === "who" ? "la WHO-FC" : (q.senza === "d6" ? "la 6MWD" : "il peptide")) + " può ancora cambiarlo. Se resta basso, si mantiene " + corPill("I", "B") + pgs(R4) + ". Che cosa fare con la terapia: Tool Terapia PAH.");
+        else h += passo(true, "✓", "<b>Obiettivo raggiunto: si mantiene</b> " + corPill("I", "B") + pgs(R4) + ". Che cosa fare con la terapia: Tool Terapia PAH.");
+      }
+      else h += passo(true, "→", "<b>Obiettivo non raggiunto</b>: l'obiettivo è il basso rischio, non «meglio di prima» " + corPill("I", "B") + pgs(R4) + ". Che cosa aggiungere o cambiare in questo strato: <b>Tool Terapia PAH</b>" + pgs(F9) + ".");
+      if (st >= 3) h += passo(true, "→", "<b>Trapianto:</b> nei candidati potenziali con risposta inadeguata alla combinazione orale, invio per la valutazione " + corPill("I", "C") + pgs(R13) + (st === 4 ? "; con rischio alto nonostante una terapia ottimizzata che comprende un prostanoide s.c. o e.v., messa in lista " + corPill("I", "C") + pgs(R13) : "") + ". Le righe e il REVEAL, solo come soglia, sono nel Tool Terapia PAH.");
+    }
+    if (st === null) h += '<div class="muted" style="margin-bottom:6px">Il passo dopo dipende dallo strato, che qui ancora non c\'è: terapia nel Tool Terapia PAH.</div>';
+    h += '<h3 class="sep">Quando si rifà</h3>';
+    h += passo(false, "·", "Ogni 3–6 mesi se stabile, e 3–6 mesi dopo ogni cambio di terapia: visita con la WHO-FC, 6MWT ed esami con il peptide sempre indicati. Ecocardiogramma o risonanza: indicati, nel paziente stabile si possono considerare. Cateterismo: da considerare dopo un cambio e nel peggioramento, si può considerare nel paziente stabile. Gli intervalli si adattano al paziente" + pgs(T17p) + ".");
+    h += '<h3 class="sep">Rec. Table 4 — le righe</h3>';
+    h += passo(false, "·", corPill("I", "B") + " La gravità si giudica con un pannello: clinica, test da sforzo, biochimica, ecocardiogramma, emodinamica" + pgs(R4) + ".");
+    h += passo(false, "·", corPill("I", "B") + " Obiettivo: arrivare al basso rischio con la terapia ottimizzata, e restarci" + pgs(R4) + ".");
+    h += passo(s.mom === "dia", "·", corPill("I", "B") + " Alla diagnosi: tre strati, con tutti i dati disponibili, emodinamica compresa" + pgs(R4) + ".");
+    h += passo(s.mom === "fu", "·", corPill("I", "B") + " Al follow-up: quattro strati su WHO-FC, 6MWD e peptide, con altre variabili quando servono" + pgs(R4) + ".");
+    h += passo(s.comorb || s.forma === "altra", "·", corPill("IIa", "B") + " In alcune eziologie e con le comorbidità: terapia ottimizzata caso per caso, sapendo che il basso rischio non sempre si raggiunge" + pgs(R4) + ".");
+    h += '<div class="muted" style="font-size:12px;margin-top:6px">La ERS 2026 conserva i due modelli: tre strati alla diagnosi, quattro al follow-up' + pgs(E27) + ".</div>";
+    el("outPoi").innerHTML = h;
+  }
+
+  function disegnaDaSapere(s, R) {
+    function inc(tocca, x) { return nota(tocca ? "" : "spenta", (tocca ? "<b>Tocca questo caso.</b> " : "") + x); }
+    var q = R.stato === "fu" ? R.q : null, t = R.stato === "dia" ? R.t : null;
+    var nonIntera = !!(q && q.stato === "ok" && Math.round(q.media) !== q.media), diff = nonIntera && q.eccesso !== q.strato;
+    var pep2015 = s.pv !== null && ((s.pep === "nt" && s.pv > 1100 && s.pv <= 1400) || (s.pep === "bnp" && s.pv > 300 && s.pv <= 800));
+    var entrambe = s.svi !== null && s.svrm !== null;
+    var h =
+      inc(nonIntera, "<b>Come si arrotonda.</b> La fonte scrive «all'intero successivo», senza esempi" + pgs(T18p) + "; il 7th World Symposium scrive «all'intero più vicino»" + pgs(W9) + ". Lettura del progetto, decisione del medico del 01/11/2026: <b>all'intero più vicino, e il mezzo verso l'alto</b>. Con tre variabili il mezzo non capita mai: 1,33 → 1 · 1,67 → 2 · 2,33 → 2 · 2,67 → 3 · 3,33 → 3 · 3,67 → 4. Con due sì: 1,5 → 2 · 2,5 → 3 · 3,5 → 4, e lì nessuna delle due fonti decide: è una lettura nostra, la più prudente." + (diff ? " <b>Qui:</b> " + med(q.media) + " al più vicino fa " + q.strato + "; letto per eccesso farebbe " + q.eccesso + "." : "")) +
+      inc(!!(t && t.buco), "<b>Il buco dell'indice cardiaco.</b> La Tab. 16 ha ≥ 2,5 e 2,0–2,4: fra 2,4 e 2,5 non colloca" + pgs(T16p) + ". Lo strumento lo legge come intermedio, la lettura più prudente, ed è nostra.") +
+      inc(!!(q && q.buchi && q.buchi.length), "<b>I salti della Tab. 18.</b> 319 e 320 m, BNP 199 e 200, NT-proBNP 649 e 650: un valore con i decimali fra i due non è collocato" + pgs(T18p) + ". Lo strumento lo legge nella fascia di rischio più alto, lettura nostra.") +
+      inc(entrambe, "<b>Due tagli per la SVI.</b> Al cateterismo &gt; 38 e &lt; 31 mL/m², alla risonanza &gt; 40 e &lt; 26 mL/m²" + pgs(T16p) + ": non si scambiano, e lo strumento li tiene in due campi.") +
+      inc(pep2015, "<b>I tagli del peptide sono cambiati.</b> Nel 2015: BNP &lt; 50, 50–300, &gt; 300 e NT-proBNP &lt; 300, 300–1400, &gt; 1400 ng/L" + pgs(P58) + "; dal 2022, alla diagnosi, 50–800 e 300–1100, per armonizzarli con i quattro strati, mentre le validazioni europee avevano usato quelli originali" + pgs(T16p + ", nota d") + ". Questo valore con i tagli del 2015 cadrebbe in un'altra fascia.") +
+      inc(false, "<b>La lettera «a» della Tab. 18.</b> La fonte la mette anche accanto al NT-proBNP, ma la nota parla della WHO-FC" + pgs(T18p) + ": non cambia nessun punto.") +
+      inc(!!(s.ts !== null && s.ts > 0.32 && s.ts <= 0.55), "<b>TAPSE/sPAP alto.</b> Nella Tab. 16 il basso rischio è &gt; 0,32" + pgs(T16p) + "; la Tab. S2 del supplementare, da un solo lavoro, dà il rischio ridotto da &gt; 0,55" + pgs("ESC/ERS 2022, suppl., Tab. S2, p. 9") + ". Lo strato si legge sulla Tab. 16.") +
+      inc(false, "<b>Le fasce di mortalità.</b> Alla diagnosi sono stimate; al follow-up osservate nei registri, e per questo si sovrappongono: 0–3% e 2–7%" + pgs(P59) + ". Nel 2015 erano &lt; 5%, 5–10% e &gt; 10%" + pgs(P59) + ".") +
+      inc(false, "<b>La sPAP stimata all'ecocardiogramma non è fra le variabili:</b> a riposo non è prognostica e non guida la terapia; se sale non vuol dire che la malattia progredisce, se scende non vuol dire che migliora" + pgs("ESC/ERS 2022, p. 3656") + ".") +
+      inc(s.pv !== null, "<b>Non sono le soglie dello scompenso.</b> Nella scheda 08 e nel Tool Peptidi (ESC 2026) il peptide dice se lo scompenso c'è; qui gradua il rischio di una PAH già diagnosticata. Domande diverse, soglie che non si scambiano. Il peptide non è specifico: sale in altre cardiopatie e varia molto" + pgs(P58) + ".");
+    el("outInc").innerHTML = "<h3>Incoerenze della fonte, letture nostre, confronti</h3>" + h;
+  }
+
+  function disegnaLimiti(s, R) {
+    var lim = [];
+    lim.push("<b>Alla diagnosi lo strumento non calcola uno strato:</b> mette le variabili in fila, dice se sono concordi o coerenti e, se non lo sono, lascia scegliere. È una constatazione sulla tabella, non un punteggio validato" + pgs(P59) + ". «Coerente» è una lettura nostra: le quattro variabili con più peso in una colonna, e nessun'altra più in alto. <b>Un basso automatico vuole almeno RAP e indice cardiaco</b> (decisione del medico del 01/11/2026, lettura nostra): la regola tocca solo il basso, perché alzare lo strato con dati parziali è prudente.");
+    lim.push("<b>Il modello a quattro strati</b> è nato e validato con tutte e tre le variabili, in due studi di registro con oltre 4000 pazienti: PAH idiopatica, ereditaria, da farmaci, da connettivite con la sclerosi sistemica, e porto-polmonare" + pgs(P59) + ". Altre forme: non validato." + (s.forma === "altra" ? " <b>Questo paziente è fra queste.</b>" : ""));
+    lim.push("<b>Comorbidità cardiopolmonari:</b> i pazienti erano poco rappresentati negli studi, e qui la stratificazione serve poco a guidare la terapia" + pgs(P71) + "." + (s.comorb ? " <b>Questo paziente le ha.</b>" : ""));
+    lim.push("<b>La 6MWD</b> dipende da età, altezza e comorbidità" + pgs(T16p + ", nota c") + "; si legge in metri assoluti, nel contesto, e nessuna soglia vale per tutti" + pgs(P57) + ".");
+    lim.push("<b>A ogni stadio</b> contano anche età, sesso, tipo di malattia, comorbidità e funzione renale" + pgs(P60) + ". <b>Il peptide con il rene insufficiente:</b> la ESC/ERS 2022 non lega i due e non ne corregge i tagli, e lo strumento nemmeno; mettere la funzione renale nel punteggio è una strategia ancora da validare" + pgs(P59) + ". Il 7th World Symposium ricorda che il peptide risente anche di età, sforzo recente, obesità, ritmo, funzione renale e cuore sinistro" + pgs("WSPH 2024, rischio, p. 11") + ": il taglio non cambia, il dato si legge nel contesto.");
+    lim.push("<b>Parte da una PAH già confermata al cateterismo</b> (mPAP &gt; 20, PAWP ≤ 15, PVR &gt; 2" + pgs("ESC/ERS 2022, Tab. 5, p. 3637") + "): la PAWP qui non si chiede, e la si controlla nel Tool Cateterismo IP.");
+    lim.push("<b>Non vale</b> sotto i 18 anni né nei gruppi 2–5. <b>REVEAL 2.0 e Lite 2 non sono calcolati</b> (decisione del medico: la formula non sta nella fonte); nel Tool Terapia PAH il REVEAL entra solo come soglia.");
+    lim.push("Nessuna dose: le dosi sono nel Tool Farmaci PAH. Lo strato non decide da solo: la terapia si decide nel centro per l'ipertensione polmonare.");
+    el("limiti").innerHTML = "<li>" + lim.join("</li><li>") + "</li>";
+  }
+
+  function disegnaBarra(s, R) {
+    function bar(id, k, x) { var b = el(id); b.className = "cat " + k; b.innerHTML = x; }
+    bar("barModello", "kx", R.stato === "dia" ? "tre strati" : (R.stato === "fu" ? "quattro strati" : "—"));
+    var kS = "kx", tS = "—", kM = "kx", tM = "—";
+    if (R.stato === "dia" && R.strato) { kS = K3[R.strato]; tS = NOME3[R.strato] + (R.giudizio ? " · giudizio tuo" : "") + (R.strato === "b" && R.t.emoVuote.length ? " · emodinamica parziale" : ""); kM = K3[R.strato]; tM = MORT3[R.strato]; }
+    else if (R.stato === "dia" && R.t.stato === "discorde") tS = "discordante";
+    if (R.stato === "fu" && R.q.stato === "ok") { kS = K4[R.q.strato]; tS = NOME4[R.q.strato] + (R.q.n === 2 ? " · su 2 variabili" : ""); kM = K4[R.q.strato]; tM = MORT4[R.q.strato]; }
+    bar("barStrato", kS, tS);
+    bar("barMort", kM, tM);
+  }
+
+  function disegna() {
+    var s = S(), R = valuta(s);
+    disegnaCampi(s);
+    disegnaStrato(s, R);
+    disegnaCome(s, R);
+    disegnaPoi(s, R);
+    disegnaDaSapere(s, R);
+    disegnaLimiti(s, R);
+    disegnaBarra(s, R);
+  }
+
+  document.addEventListener("input", disegna);
+  document.addEventListener("change", disegna);
+  el("azzera").addEventListener("click", function () {
+    var ins = document.querySelectorAll("input"), i;
+    for (i = 0; i < ins.length; i++) {
+      if (ins[i].type === "checkbox" || ins[i].type === "radio") ins[i].checked = false;
+      else ins[i].value = "";
+    }
+    disegna();
+    window.scrollTo(0, 0);
+  });
+
+  window.RISCHIO_MOTORE = { T16:T16, T18:T18, MORT3:MORT3, MORT4:MORT4, strato3:strato3, puntiD6:puntiD6, puntiPep:puntiPep, arrot:arrot, scenari:scenari, tre:tre, quattro:quattro, valuta:valuta, contra:contra };
+  disegna();
+})();
+</script>
+<script data-iphone="web">
+// Solo da un indirizzo https, cioe' dalla pagina pubblicata: aperto come file
+// il tool non cerca ne' manifest ne' service worker, che accanto al file non
+// ci sono. Un errore qui non deve fermare niente: e' un di piu'.
+(function(){
+if(location.protocol!=="https:") return;
+try{
+  var t=document.getElementsByTagName("head")[0];
+  var m=document.createElement("link"); m.rel="manifest"; m.href="manifest.webmanifest";
+  var i=document.createElement("link"); i.rel="apple-touch-icon"; i.href="icona-180.png";
+  t.appendChild(m); t.appendChild(i);
+  if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js")["catch"](function(){});
+}catch(e){}
+})();
+</script>
+<script data-iphone="fine">document.documentElement.className+=" motore-ok";</script>
+</body>
+</html>
